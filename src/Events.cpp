@@ -4,7 +4,19 @@ namespace Events
 {
 	RE::BSEventNotifyControl Events::ModEventSink::ProcessEvent(const SKSE::ModCallbackEvent* event, RE::BSTEventSource<SKSE::ModCallbackEvent>*)
 	{
-		if (!event || !MiscUtils::IsJournalMenuOpen()) return continueEvent;
+		if (!event) return continueEvent;
+		if (!MiscUtils::IsJournalMenuOpen()) {
+			ModCore::DialogSession::Cancel();
+			return continueEvent;
+		}
+		if (event->eventName == "SKICP_dialogCanceled" ||
+			event->eventName == "SKICP_inputSelected" ||
+			event->eventName == "SKICP_menuSelected" ||
+			event->eventName == "SKICP_sliderSelected" ||
+			event->eventName == "SKICP_colorSelected") {
+			if (ModCore::DialogSession::Cancel()) MiscUtils::SetSearchWidgetDisabled(false);
+			return continueEvent;
+		}
 
 		if (event->eventName == "SKICP_inputAccepted") {
 			std::string result = event->strArg.c_str();
@@ -14,6 +26,14 @@ namespace Events
 			ModCore::Reorder::ReorderDone(selectedIndex);
 		}
 
+		return continueEvent;
+	}
+
+	RE::BSEventNotifyControl Events::ModEventSink::ProcessEvent(const RE::MenuOpenCloseEvent* event, RE::BSTEventSource<RE::MenuOpenCloseEvent>*)
+	{
+		if (event && event->menuName == RE::JournalMenu::MENU_NAME && !event->opening) {
+			ModCore::DialogSession::Cancel();
+		}
 		return continueEvent;
 	}
 
@@ -42,6 +62,7 @@ namespace Events
 			if (buttonEvent->GetDevice() == RE::INPUT_DEVICE::kKeyboard) {
 				const auto id = buttonEvent->GetIDCode();
 				if (ctrlHeld && id == SettingsIni::iInput_ResetKey) {
+					ModCore::DialogSession::Cancel();
 					ModCore::Reset::ResetStart();
 					constexpr RE::InputEvent* const dummy[] = { nullptr };
 					return _processInputHook(dispatcher, dummy);
