@@ -9,7 +9,8 @@
 namespace Events
 {
 	class ModEventSink :
-		public RE::BSTEventSink<SKSE::ModCallbackEvent>
+		public RE::BSTEventSink<SKSE::ModCallbackEvent>,
+		public RE::BSTEventSink<RE::MenuOpenCloseEvent>
 	{
 		ModEventSink() = default;
 		ModEventSink(const ModEventSink&) = delete;
@@ -31,9 +32,9 @@ namespace Events
 		static void LoadEvents()
 		{
 			auto* eventSink = GetSingleton();
-			auto* eventSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
 
 			SKSE::GetModCallbackEventSource()->AddEventSink(eventSink);
+			RE::UI::GetSingleton()->AddEventSink<RE::MenuOpenCloseEvent>(eventSink);
 
 			auto& trampoline = SKSE::GetTrampoline();
 			SKSE::AllocTrampoline(1 << 8);
@@ -44,6 +45,7 @@ namespace Events
 		}
 
 		RE::BSEventNotifyControl ProcessEvent(const SKSE::ModCallbackEvent* event, RE::BSTEventSource<SKSE::ModCallbackEvent>*) override;
+		RE::BSEventNotifyControl ProcessEvent(const RE::MenuOpenCloseEvent* event, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
 
 		static void ProcessInputHookTemplate(RE::BSTEventSource<RE::InputEvent*>* dispatcher,RE::InputEvent* const* eventList);
 		inline static REL::Relocation<decltype(ProcessInputHookTemplate)> _processInputHook;
