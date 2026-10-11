@@ -6,6 +6,10 @@
 static void MessageHandler(SKSE::MessagingInterface::Message* a_msg)
 {
 	switch (a_msg->type) {
+	case SKSE::MessagingInterface::kPreLoadGame:
+	case SKSE::MessagingInterface::kNewGame:
+		ModCore::DialogSession::Cancel();
+		break;
 	case SKSE::MessagingInterface::kPostLoad:
 		ModData::DataHandler::GetSingleton()->PreInitData();
 		break;
